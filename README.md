@@ -4,12 +4,15 @@
 
 Imagine you’re in a busy restaurant kitchen.
 The developers are the chefs, they make the dishes (apps).
+
 The Platform Engineers are the kitchen designers and maintainers, they build the stove, manage the ovens, automate the order system, make sure ingredients (dependencies) arrive on time, and ensure safety and hygiene rules (security, compliance) are followed.
 
 If the stove breaks, the chefs can’t cook.
 If the menu changes, the kitchen must adapt quickly.
 
 **That’s Platform Engineering**: building and running the foundation that lets developers deliver fast, safely, and repeatedly.
+
+---
 
 ### The "Why" Behind a Platform Team
 
@@ -23,6 +26,8 @@ So the Platform Team is being formed to:
 	•	Balance speed (developer autonomy) with control (security, compliance, cost).
 
 The mission: make developers’ lives easier while keeping the system reliable, secure, and cost-efficient.
+
+---
 
 ### The Key Responsibilities of a Platform Engineer
 
@@ -39,6 +44,6 @@ Common Tasks:
 	4.	Monitor node health, control plane metrics, and workloads.
 	5.	Use IaC (Terraform) to keep everything reproducible.
 
-
+---
 
   
