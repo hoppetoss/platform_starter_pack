@@ -32,6 +32,7 @@ Maintaining and Managing Kubernetes Clusters
 - The PE job is to keep the platform healthy and predictable.
 
 Common Tasks:
+
 	1.	Maintain cluster versions and upgrades.
 	2.	Manage namespaces, network policies, ingress controllers, storage classes.
 	3.	Implement autoscaling (HPA/VPA/Cluster Autoscaler).
