@@ -241,6 +241,7 @@ Then run: `docker compose up --build`
 #### Day 1 Outcome
 
 By the end of Day 1, you have:
+
 	•	✅ A FastAPI service running locally
 	•	✅ /checkout and /healthz endpoints working
 	•	✅ Traces visible in Jaeger
