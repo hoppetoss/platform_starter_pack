@@ -1,10 +1,18 @@
-### Part 1 : Build a Microservice for the Demo
+### Day 1 : Build a Microservice for the Demo
 
-Goal: Build a simple FastAPI microservice to serve as the demo app.
+**Goal**
 
-Endpoints: • /checkout → simulates real business logic • /healthz → readiness / liveness probe
+Create a simple FastAPI microservice (with observability) as the foundation for our demo.
+It will simulate real business logic and expose endpoints for health checks and observability.
 
-#### Install Required Tools
+#### Part 1 – Setup & Tool Installation
+
+Endpoints Overview
+	•	/checkout → simulates real business logic
+	•	/healthz → readiness/liveness probe
+
+
+**Install Required Tools**
 
 ```
 brew install kind kubectl
@@ -13,16 +21,22 @@ pipx install fastapi uvicorn
 brew install --cask lens
 ```
 
+
 #### Part 2 – Add Built-In Observability
 
-Goal: We don’t just want an app that runs, we want one that explains itself when it runs. 
-1. Integrate OpenTelemetry to export traces of each request.
-  • Requests show up in Jaeger (span name, duration, trace ID).
-2. Integrate Prometheus (using prometheus-fastapi-instrumentator) to export metrics at /metrics.
-   • Real-time counts, latencies, and error rates ready for Prometheus scraping.
+We don’t just want an app that runs, we want one that explains itself while it runs.
 
-#### Part 3 – Test Locally Before Automation
-1. Run the app locally
+Step 1: Add Tracing (OpenTelemetry)
+	•	Integrate OpenTelemetry SDK to export traces for each request.
+	•	Traces should appear in Jaeger with span name, duration, and trace ID.
+
+Step 2: Add Metrics (Prometheus)
+	•	Use prometheus-fastapi-instrumentator to export metrics at /metrics.
+	•	This provides real-time counts, latencies, and error rates for Prometheus scraping.
+
+#### Part 3 – Run & Test Locally
+
+Step 1: Run the App
 
 ```
 # from fastapi-demo/
@@ -32,7 +46,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8080
 ```
 
-2. Test endpoints
+Step 2: Test Endpoints
 
 `curl -s http://localhost:8080/healthz`
 
@@ -40,11 +54,15 @@ uvicorn app.main:app --reload --port 8080
 
 You should see JSON responses.
 
+```
+{"status":"healthy"}%
+{"status":"success"}%
+```
 
-#### Part 4: Enable Traces
-3. Run Jaeger to see Traces
 
-Spin up a quick Jaeger all-in-one with an OTLP HTTP receiver (to see the traces)
+#### Part 4 – Enable Traces (Jaeger)
+
+Step 1: Run Jaeger All-in-One
 
 
 ```
@@ -52,17 +70,22 @@ docker run -p 16686:16686 -p 4318:4318 --name jaeger \
   jaegertracing/all-in-one:1.57
 ```
 
-Keep your app running with defaults (it exports to http://localhost:4318/v1/traces).
+Step 2: Send Requests to Generate Traces
 
-Send a few requests: for i in {1..5}; do curl -s http://localhost:8080/checkout > /dev/null; done
+`for i in {1..5}; do curl -s http://localhost:8080/checkout > /dev/null; done`
 
-Open the Jaeger UI: http://localhost:16686 → find service fastapi-demo → see spans.
+Step 3: View Traces
 
-#### Part 5: Enable Prometheus Metrics
+Open the Jaeger UI → http://localhost:16686
+Find service: fastapi-demo → view spans and trace timelines.
 
-1. Install the library pip install prometheus-fastapi-instrumentator
+#### Part 5 – Enable Prometheus Metrics
 
-Add to your requirements.txt:
+Step 1: Install Dependencies
+
+`pip install prometheus-fastapi-instrumentator`
+
+Add to requirements.txt:
 
 ```
 fastapi
@@ -73,14 +96,12 @@ opentelemetry-exporter-otlp
 prometheus-fastapi-instrumentator
 ```
 
+Step 2: Verify Endpoints
 
-Run the app `uvicorn app.main:app --reload --port 8080`
-
-Verify endpoints: 
-
-`curl -s http://localhost:8080/healthz`
-
-`curl -s http://localhost:8080/checkout`
+```
+curl -s http://localhost:8080/healthz
+curl -s http://localhost:8080/checkout
+```
 
 Open http://localhost:8080/metrics
 
@@ -94,13 +115,11 @@ http_request_duration_seconds_sum{handler="/checkout",method="GET",status="200"}
 ```
 
 
-Part 6: Visualize metrics with Prometheus
+#### Part 6: Visualize metrics with Prometheus
 
-If you have Prometheus installed via Homebrew: 
+If Prometheus is installed via Homebrew:
 
-1. Create prometheus.yml
-2. Start Prometheus: prometheus --config.file=prometheus.yml
-3. Add this scrape job:
+Step 1: Create prometheus.yml
 
 ```
 scrape_configs:
@@ -109,25 +128,29 @@ scrape_configs:
       - targets: ['localhost:8080']
 ```
 
-4. Visit http://localhost:9090
+Step 2: Start Prometheus
 
-Query `http_request_duration_seconds_count`
+`prometheus --config.file=prometheus.yml`
 
-Now you’re seeing live FastAPI request metrics directly from your app!
+Step 3: Open Prometheus UI
 
-Metrics show the what, 500 requests/sec, 2% errors. 
 
-Traces reveal the why, checkout calls payment 3× because of retries. 
+Visit http://localhost:9090
+Query: http_request_duration_seconds_count
 
-Together they form core observability.
+✅ You’re now seeing live FastAPI metrics from your app.
 
-“Developers can now see both sides of performance: 
-- metrics show the ‘what’,  500 requests per second, 2% errors,
-- while traces reveal the ‘why’,  checkout calls payment three times because of retries.”
+Remember:
+	•	Metrics show the what → e.g., 500 req/sec, 2% errors
+	•	Traces show the why → e.g., checkout calls payment 3× due to retries
 
-Part 6: Validate Your Dockerfile
+Together, they form the core of observability.
+	
 
-Goal : Validate your Dockerfile before CI/CD
+#### Part 7 – Validate Your Dockerfile
+
+Step 1: Build and Run
+
 
 ```
 docker build -t fastapi-demo:local .
@@ -135,8 +158,8 @@ docker run -p 8080:8080 --rm fastapi-demo:local
 curl -s http://localhost:8080/checkout
 ```
 
+Step 2: Export Traces from Container
 
-To export traces from inside the container to local Jaeger:
 
 ```
 # Ensure Jaeger from step D is running
@@ -146,61 +169,88 @@ docker run -e OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4318/v1/tr
 ```
 
 
-Part 7: Enable Traces Inside Docker (with Correct Networking)
+#### Part 8 – Enable Traces Inside Docker (Networking Fix)
 
-If you try exporting traces from inside the container to Jaeger using:
+If traces fail to export, create a shared network.
+
+Step 1: Create Network
+
+`docker network create observability`
+
+Step 2: Run Jaeger on That Network
 
 ```
-docker run -e OTEL_EXPORTER_OTLP_ENDPOINT=http://host.docker.internal:4318/v1/traces \
-  -e OTEL_SERVICE_NAME=fastapi-demo \
-  -p 8080:8080 --rm fastapi-demo:local
-```
-
-you might see connection errors if Jaeger isn’t reachable from the container. 
-
-To fix that, run both containers on the same Docker network.
-
-1. Create a shared network : docker network create observability
-2. Run Jaeger on that network:
-
-``` 
 docker run -d --name jaeger \
---network observability
--e COLLECTOR_OTLP_ENABLED=true
--p 16686:16686 -p 4318:4318
-jaegertracing/all-in-one:1.57
+  --network observability \
+  -e COLLECTOR_OTLP_ENABLED=true \
+  -p 16686:16686 -p 4318:4318 \
+  jaegertracing/all-in-one:1.57
 ```
 
-3.  Test it: `for i in {1..5}; do curl -s http://localhost:8080/checkout > /dev/null; done`
+Step 3: Run Your App on Same Network
 
-4.  Then open Jaeger → http://localhost:16686
+```
+docker run --rm -p 8080:8080 \
+  --network observability \
+  -e OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318/v1/traces \
+  -e OTEL_SERVICE_NAME=fastapi-demo \
+  fastapi-demo:local
+```
 
-✅ You’ll now see traces for fastapi-demo.
+Step 4: Test
 
-#### Optional: Use Docker Compose for One-Command Startup
+`for i in {1..5}; do curl -s http://localhost:8080/checkout > /dev/null; done`
+
+✅ Traces now appear in http://localhost:16686
+
+
+Optional – One-Command Startup with Docker Compose
 
 Create a `docker-compose.yml`
 
-```
-version: "3.8" services: jaeger: image: jaegertracing/all-in-one:1.57 ports: - "16686:16686" - "4318:4318" environment: - COLLECTOR_OTLP_ENABLED=true
+Create a docker-compose.yml:
 
-fastapi-demo: build: . ports: - "8080:8080" environment: - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318/v1/traces - OTEL_SERVICE_NAME=fastapi-demo depends_on: - jaeger
+```
+version: "3.8"
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  fastapi-demo:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318/v1/traces
+      - OTEL_SERVICE_NAME=fastapi-demo
+    depends_on:
+      - jaeger
 ```
 
 
 Then run: `docker compose up --build`
 
-Both the app and Jaeger come online automatically and connect correctly.
+✅ Both the app and Jaeger start and connect automatically.
 
 
-#### Phase 1 Outcome
-	•	FastAPI service runs locally
-	•	Exposes /checkout and /healthz
-	•	Traces visible in Jaeger
-	•	Metrics exposed at /metrics
-	•	Docker build works
-	•	Foundation ready for automation (Phase 2)
+#### Day 1 Outcome
 
+By the end of Day 1, you have:
+	•	✅ A FastAPI service running locally
+	•	✅ /checkout and /healthz endpoints working
+	•	✅ Traces visible in Jaeger
+	•	✅ Metrics exposed at /metrics
+	•	✅ A validated Docker build
+	•	✅ Ready foundation for automation (Day 2)
+
+#### Next Step
+
+In day2, you’ll containerize this app fully and deploy it to a local Kind Kubernetes cluster with observability enabled.
 
 
 
