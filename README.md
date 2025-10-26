@@ -21,6 +21,7 @@ You want to be able to scale, more services, more developers, more releases.
 Without a stable platform, teams waste time reinventing environments, fixing CI/CD pipelines, or debugging Kubernetes misconfigurations.
 
 So the Platform Team is being formed to:
+
 	•	Standardize how apps are built, deployed, and monitored.
 	•	Provide self-service tools for developers (an Internal Developer Platform, or IDP).
 	•	Balance speed (developer autonomy) with control (security, compliance, cost).
@@ -32,9 +33,11 @@ The mission: make developers’ lives easier while keeping the system reliable, 
 ### The Key Responsibilities of a Platform Engineer
 
 Maintaining and Managing Kubernetes Clusters
-- Most modern apps these days run as containers.
-- Kubernetes handles scaling, updates, and healing.
-- The PE job is to keep the platform healthy and predictable.
+
+	• Most modern apps these days run as containers.
+	• Kubernetes handles scaling, updates, and healing.
+	• The PE job is to keep the platform healthy and predictable.
+
 
 Common Tasks:
 
