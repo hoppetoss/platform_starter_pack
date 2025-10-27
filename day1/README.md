@@ -5,6 +5,20 @@
 Create a simple FastAPI microservice (with observability) as the foundation for our demo.
 It will simulate real business logic and expose endpoints for health checks and observability.
 
+#### Built-In Observability
+
+We don’t just want an app that runs, we want one that explains itself while it runs.
+
+That's why we have also added Tracing (OpenTelemetry):
+	•	Integrate OpenTelemetry SDK to export traces for each request.
+	•	Traces should appear in Jaeger with span name, duration, and trace ID.
+
+and added Metrics (Prometheus)
+	•	Use prometheus-fastapi-instrumentator to export metrics at /metrics.
+	•	This provides real-time counts, latencies, and error rates for Prometheus scraping.
+
+---
+
 #### Part 1 – Setup & Tool Installation
 
 Endpoints Overview
@@ -27,8 +41,7 @@ brew install --cask lens
 
 We now have a running local cluster you can deploy to.
 
-
-**Build a FastAPI application**
+#### Part 2 – Build a FastAPI application
 
 Project structure
 
@@ -116,19 +129,9 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 
 
-#### Part 2 – Add Built-In Observability
 
-We don’t just want an app that runs, we want one that explains itself while it runs.
 
-Step 1: Add Tracing (OpenTelemetry)
-	•	Integrate OpenTelemetry SDK to export traces for each request.
-	•	Traces should appear in Jaeger with span name, duration, and trace ID.
-
-Step 2: Add Metrics (Prometheus)
-	•	Use prometheus-fastapi-instrumentator to export metrics at /metrics.
-	•	This provides real-time counts, latencies, and error rates for Prometheus scraping.
-
-#### Part 3 – Run & Test Locally
+#### Part 3 - Run & Test Locally
 
 Step 1: Run the App
 
@@ -154,10 +157,9 @@ You should see JSON responses.
 ```
 
 
-#### Part 4 – Enable Traces (Jaeger)
+#### Part 4 - Viewing Traces (Jaeger)
 
 Step 1: Run Jaeger All-in-One
-
 
 ```
 docker run -p 16686:16686 -p 4318:4318 --name jaeger \
@@ -173,7 +175,7 @@ Step 3: View Traces
 Open the Jaeger UI → http://localhost:16686
 Find service: fastapi-demo → view spans and trace timelines.
 
-#### Part 5 – Enable Prometheus Metrics
+#### Part 5 – Viewing Metrics (Prometheus)
 
 Step 1: Install Dependencies
 
