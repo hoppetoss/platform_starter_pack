@@ -15,11 +15,105 @@ Endpoints Overview
 **Install Required Tools**
 
 ```
-brew install kind kubectl
+brew install minikube
 brew install python3 pipx
 pipx install fastapi uvicorn
 brew install --cask lens
 ```
+
+**Local Cluster Setup**
+
+`minikube start --cpus=4 --memory=8192`
+
+We now have a running local cluster you can deploy to.
+
+
+**Build a FastAPI application**
+
+Project structure
+
+```
+fastapi-demo/
+├── app/
+│   ├── main.py
+│   ├── __init__.py
+│   └── otel_config.py
+├── requirements.txt
+├── Dockerfile
+```
+
+**app/main.py**
+
+```
+from fastapi import FastAPI
+import time, random
+from app.otel_config import init_tracer
+from opentelemetry import trace
+from prometheus_fastapi_instrumentator import Instrumentator
+
+# Initialize tracing
+init_tracer()
+tracer = trace.get_tracer(__name__)
+
+# Create app
+app = FastAPI()
+
+# ✅ Initialize Prometheus metrics BEFORE startup
+instrumentator = Instrumentator().instrument(app).expose(app)
+
+@app.get("/checkout")
+async def checkout():
+    with tracer.start_as_current_span("checkout-operation"):
+        time.sleep(random.uniform(0.2, 0.8))
+        return {"status": "success"}
+
+@app.get("/healthz")
+def health():
+    return {"status": "healthy"}
+```
+
+**app/otel_config.py**
+
+```
+import os
+from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+def init_tracer():
+    # Allow override via env for flexibility during local tests
+    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318/v1/traces")
+    service_name = os.getenv("OTEL_SERVICE_NAME", "fastapi-demo")
+
+    provider = TracerProvider(resource=Resource(attributes={"service.name": service_name}))
+    trace.set_tracer_provider(provider)
+    exporter = OTLPSpanExporter(endpoint=endpoint)
+    provider.add_span_processor(BatchSpanProcessor(exporter))
+```
+
+**requirements.txt**
+
+```
+fastapi
+uvicorn
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+prometheus-fastapi-instrumentator
+```
+
+**Dockerfile**
+
+```
+FROM python:3.10-slim
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+```
+
 
 
 #### Part 2 – Add Built-In Observability
